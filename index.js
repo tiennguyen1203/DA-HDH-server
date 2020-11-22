@@ -1,8 +1,12 @@
 const express = require("express");
 const app = express();
 app.use(express.static("public"));
+const server = require("http").Server(app);
+const io = require("socket.io")(server);
+
 app.set("view engine", "ejs");
 app.set("views", "./views");
+
 const Stack = require('./Stack');
 const Queue = require('./Queue');
 const {
@@ -22,12 +26,6 @@ const {
 } = require('./services');
 
 const PORT = 3001;
-
-const server = require("http").Server(app);
-const io = require("socket.io")(server);
-server.listen(PORT);
-
-
 
 const getSplitData = (data) => {
   let arrString;
@@ -202,8 +200,12 @@ const handleData = (data) => {
   const result = stack2.pop();
   return result;
 }
-io.on("connection", function (socket) {
+
+server.listen(PORT);
+
+io.sockets.on("connection", function (socket) {
   console.log('connected');
+  console.log('123123123', socket.request);
   socket.on("disconnect", function () {
   });
   //server lắng nghe dữ liệu từ client
@@ -211,7 +213,7 @@ io.on("connection", function (socket) {
     try {
       const newData = await handleData(data);
       //sau khi lắng nghe dữ liệu, server phát lại dữ liệu này đến các client khác
-      socket.emit("server-sent-data", newData);
+      socket.emit("server-sent-data", { IP: '123', value: newData });
     } catch (err) {
       throw err;
     }
